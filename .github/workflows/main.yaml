@@ -1,32 +1,43 @@
-name: Build IOS
+name: Build IPA
+
 on:
-  workflow_dispatch: {}
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
 
 jobs:
-  build_ios:
-    runs-on: macos-13
+  build:
+    runs-on: macos-latest
 
     steps:
     - name: Checkout code
-      uses: actions/checkout@v3
-      
-    - name: Set Xcode version
-      run: sudo xcode-select --switch /Applications/Xcode_14.3.1.app
+      uses: actions/checkout@v2
+
+    - name: Set up Ruby
+      uses: ruby/setup-ruby@v1
+      with:
+        ruby-version: '2.7'
 
     - name: Install dependencies
       run: |
-        gem install cocoapods
+        gem install bundler
+        bundle install
 
-    - name: Build .xcarchive
+    - name: Set up Xcode
       run: |
-        xcodebuild clean archive \
-          -workspace MangaReader.xcworkspace \
-          -scheme MangaReader \
-          -configuration Release \
-          -archivePath ./build/MangaReader.xcarchive \
+        sudo xcode-select -s /Applications/Xcode_12.4.app
+        sudo xcodebuild -license accept
 
-    - name: Upload .ipa
-      uses: actions/upload-artifact@v4
+    - name: Build IPA
+      run: |
+        xcodebuild -workspace MangaReader.xcworkspace -scheme MangaReader -sdk iphoneos -configuration AppStoreDistribution archive -archivePath $PWD/build/MangaReader.xcarchive
+        xcodebuild -exportArchive -archivePath $PWD/build/MangaReader.xcarchive -exportOptionsPlist exportOptions.plist -exportPath $PWD/build
+
+    - name: Upload IPA
+      uses: actions/upload-artifact@v2
       with:
-        name: app-ios.ipa
-        path: ./build/YourApp.ipa
+        name: MangaReader.ipa
+        path: build/MangaReader.ipa
