@@ -16,7 +16,6 @@ jobs:
     - name: Install dependencies
       run: |
         gem install cocoapods
-        pod install --project-directory=./
 
     - name: Build .xcarchive
       run: |
