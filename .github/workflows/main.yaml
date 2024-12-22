@@ -26,15 +26,19 @@ jobs:
         gem install bundler
         bundle install
 
-    - name: Set up Xcode
+    - name: Install CocoaPods
       run: |
-        sudo xcode-select -s /Applications/Xcode_12.4.app
-        sudo xcodebuild -license accept
+        sudo gem install cocoapods
+        pod install
+      working-directory: ios
+
+    - name: Set up Xcode
+      run: sudo xcode-select --switch /Applications/Xcode_12.4.app
 
     - name: Build IPA
       run: |
-        xcodebuild -workspace MangaReader.xcworkspace -scheme MangaReader -sdk iphoneos -configuration AppStoreDistribution archive -archivePath $PWD/build/MangaReader.xcarchive
-        xcodebuild -exportArchive -archivePath $PWD/build/MangaReader.xcarchive -exportOptionsPlist exportOptions.plist -exportPath $PWD/build
+        xcodebuild -workspace ios/MangaReader.xcworkspace -scheme MangaReader -sdk iphoneos -configuration AppStoreDistribution archive -archivePath $PWD/build/MangaReader.xcarchive
+        xcodebuild -exportArchive -archivePath $PWD/build/MangaReader.xcarchive -exportOptionsPlist ios/exportOptions.plist -exportPath $PWD/build
 
     - name: Upload IPA
       uses: actions/upload-artifact@v2
